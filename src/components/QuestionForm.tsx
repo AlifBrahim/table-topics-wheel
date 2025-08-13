@@ -18,10 +18,12 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   const [formQuestions, setFormQuestions] = useState<string[]>(questions);
   const [errors, setErrors] = useState<boolean[]>(new Array(questions.length).fill(false));
   const [isSaving, setIsSaving] = useState(false);
+  const [questionCount, setQuestionCount] = useState(questions.length);
 
   useEffect(() => {
     setFormQuestions(questions);
     setErrors(new Array(questions.length).fill(false));
+    setQuestionCount(questions.length);
   }, [questions]);
 
   const handleQuestionChange = (index: number, value: string) => {
@@ -63,14 +65,74 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
     if (window.confirm('Are you sure you want to reset all questions to defaults? This action cannot be undone.')) {
       setFormQuestions(defaultQuestions);
       setErrors(new Array(defaultQuestions.length).fill(false));
+      setQuestionCount(defaultQuestions.length);
       onReset();
     }
+  };
+
+  const handleQuestionCountChange = (newCount: number) => {
+    if (newCount < 1 || newCount > 50) return; // reasonable limits
+    
+    setQuestionCount(newCount);
+    
+    if (newCount > formQuestions.length) {
+      // Add empty questions
+      const additionalQuestions = new Array(newCount - formQuestions.length).fill('');
+      setFormQuestions([...formQuestions, ...additionalQuestions]);
+      setErrors([...errors, ...new Array(newCount - formQuestions.length).fill(false)]);
+    } else if (newCount < formQuestions.length) {
+      // Remove excess questions
+      setFormQuestions(formQuestions.slice(0, newCount));
+      setErrors(errors.slice(0, newCount));
+    }
+  };
+
+  const addQuestion = () => {
+    if (formQuestions.length >= 50) return; // reasonable limit
+    setFormQuestions([...formQuestions, '']);
+    setErrors([...errors, false]);
+    setQuestionCount(formQuestions.length + 1);
+  };
+
+  const removeQuestion = (index: number) => {
+    if (formQuestions.length <= 1) return; // must have at least one question
+    const newQuestions = formQuestions.filter((_, i) => i !== index);
+    const newErrors = errors.filter((_, i) => i !== index);
+    setFormQuestions(newQuestions);
+    setErrors(newErrors);
+    setQuestionCount(newQuestions.length);
   };
 
   return (
     <div className="space-y-6">
       <div className="mb-6">
         <p className="text-sm text-gray-500">Edit your questions below. All fields are required.</p>
+      </div>
+
+      {/* Question Count Controls */}
+      <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+        <div className="flex items-center justify-between mb-3">
+          <label className="text-sm font-semibold text-gray-800">Number of Questions</label>
+          <div className="flex items-center space-x-2">
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={questionCount}
+              onChange={(e) => handleQuestionCountChange(parseInt(e.target.value) || 1)}
+              className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            />
+            <button
+              onClick={addQuestion}
+              disabled={formQuestions.length >= 50}
+              className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1 transition-colors"
+              title="Add question"
+            >
+              <span>+</span>
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500">You can have between 1 and 50 questions</p>
       </div>
       
       <div className="space-y-6">
@@ -92,17 +154,31 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
                 placeholder="Enter your question here..."
                 required
               />
-              {question && (
-                <button
-                  onClick={() => clearQuestion(index)}
-                  className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-100 rounded-lg transition-all duration-200"
-                  title="Clear question"
-                >
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              )}
+              <div className="absolute top-3 right-3 flex space-x-1">
+                {question && (
+                  <button
+                    onClick={() => clearQuestion(index)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-100 rounded-lg transition-all duration-200"
+                    title="Clear question"
+                  >
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+                {formQuestions.length > 1 && (
+                  <button
+                    onClick={() => removeQuestion(index)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-all duration-200"
+                    title="Remove question"
+                  >
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clipRule="evenodd" />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-4-8a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
             {errors[index] && (
               <p className="text-sm text-red-500 mt-2 flex items-center space-x-1">

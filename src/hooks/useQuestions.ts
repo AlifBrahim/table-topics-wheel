@@ -8,15 +8,15 @@ export const useQuestions = () => {
 
   useEffect(() => {
     const savedQuestions = loadQuestionsFromStorage();
-    if (savedQuestions && savedQuestions.length === tableTopicsQuestions.length) {
+    if (savedQuestions && savedQuestions.length > 0) {
       setQuestions(savedQuestions);
     }
     setIsLoading(false);
   }, []);
 
   const saveQuestions = (newQuestions: string[]) => {
-    if (newQuestions.length !== tableTopicsQuestions.length) {
-      throw new Error(`Expected ${tableTopicsQuestions.length} questions, got ${newQuestions.length}`);
+    if (newQuestions.length < 1 || newQuestions.length > 50) {
+      throw new Error(`Expected between 1 and 50 questions, got ${newQuestions.length}`);
     }
     
     const allQuestionsValid = newQuestions.every(q => q.trim().length > 0);
