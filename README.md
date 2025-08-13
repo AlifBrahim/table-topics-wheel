@@ -1,6 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# Table Topics Wheel
 
-## Getting Started
+An interactive digital companion for Toastmasters Table Topics sessions. Features flippable cards with thought-provoking questions designed to help members practice impromptu speaking skills and build confidence in public speaking.
+
+## How to Play
+
+1. **Browse the Cards**: Scroll horizontally through the collection of conversation starter cards
+2. **Flip a Card**: Click on any card to reveal the question on the back
+3. **Answer & Discuss**: Take turns answering the questions or use them as group discussion starters
+4. **Customize Questions**: Click the briefcase icon to open the question editor where you can:
+   - Add your own custom questions
+   - Edit existing questions
+   - Reset to default questions
+   - Save up to 50 questions
+
+## Features
+
+- 21 thoughtful default conversation starters
+- Smooth card flip animations
+- Custom question management
+- Questions automatically save to your browser
+- Responsive design for all devices
+
+## Getting Started (Development)
 
 First, run the development server:
 
@@ -15,14 +36,6 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 
