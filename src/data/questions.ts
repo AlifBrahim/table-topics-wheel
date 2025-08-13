@@ -1,0 +1,22 @@
+export const tableTopicsQuestions: string[] = [
+  "What is the most memorable meal you've ever had and why?",
+  "If you could have dinner with any historical figure, who would it be and what would you ask them?",
+  "What's a skill you've always wanted to learn but never had the chance to?",
+  "Describe a moment when you felt most proud of yourself.",
+  "If you could live in any time period, past or future, which would you choose?",
+  "What's the best piece of advice you've ever received?",
+  "If you could instantly become an expert in any subject, what would it be?",
+  "What's a tradition from your family or culture that you cherish?",
+  "Describe your ideal weekend without any obligations.",
+  "What's something that always makes you laugh, no matter how many times you experience it?",
+  "If you could change one thing about the world, what would it be?",
+  "What's a book, movie, or song that has significantly impacted your life?",
+  "Describe a place you've visited that took your breath away.",
+  "What's the most interesting job you think you could never do?",
+  "If you could have any superpower for just one day, what would you choose?",
+  "What's a fear you've overcome, and how did you do it?",
+  "Describe the best teacher or mentor you've ever had.",
+  "If you could start a charity or organization, what cause would you support?",
+  "What's something you believed as a child that you later found out wasn't true?",
+  "If you could give your teenage self one piece of advice, what would it be?"
+];
