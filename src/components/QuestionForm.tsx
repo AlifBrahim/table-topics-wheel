@@ -77,7 +77,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         {formQuestions.map((question, index) => (
           <div key={index} className="group">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
-              Question {index + 1}
+              Question {index + 1} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <textarea

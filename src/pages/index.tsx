@@ -50,8 +50,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center" style={{background: 'radial-gradient(circle at center, #2B7A9B 0%, #1B5F7A 50%, #0D4A5F 100%)'}}>
-      <div className="container mx-auto px-4 mb-8">
-        <h1 className="text-3xl font-bold text-white text-center uppercase" style={{fontFamily: 'Gotham, Arial, sans-serif'}}>TABLE TOPICS GAMES</h1>
+      <div className="container mx-auto px-4 mb-8 text-center">
+        <h1 className="text-3xl font-bold text-white uppercase inline-block relative" style={{fontFamily: 'Gotham, Arial, sans-serif'}}>
+          TABLE TOPICS GAMES
+          <div className="absolute -top-1 -right-4 group">
+            <div className="w-3 h-3 rounded-full border border-white flex items-center justify-center text-white text-xs italic cursor-help" style={{fontSize: '10px'}}>
+              i
+            </div>
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              Designed by Ahmad Azeem. Developed by Alif Ibrahim.
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
+            </div>
+          </div>
+        </h1>
       </div>
       
       <div className="border-t border-white mb-4"></div>
