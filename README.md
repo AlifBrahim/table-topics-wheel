@@ -2,6 +2,20 @@
 
 An interactive digital companion for Toastmasters Table Topics sessions. Features flippable cards with thought-provoking questions designed to help members practice impromptu speaking skills and build confidence in public speaking.
 
+## Screenshots
+
+### Homepage
+![Homepage](public/homepage.png)
+
+### Card Hover Effect
+![Hover Effect](public/hovereffect.png)
+
+### Question Settings Modal
+![Question Settings](public/questionsettings.png)
+
+### Flipped Card with Question
+![Question Flipped](public/questionflipped.png)
+
 ## How to Play
 
 1. **Browse the Cards**: Scroll horizontally through the collection of conversation starter cards
