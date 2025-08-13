@@ -16,12 +16,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center" style={{backgroundColor: '#1B5F7A'}}>
+    <div className="min-h-screen flex flex-col justify-center" style={{background: 'radial-gradient(circle at center, #2B7A9B 0%, #1B5F7A 50%, #0D4A5F 100%)'}}>
       <div className="container mx-auto px-4 mb-8">
         <h1 className="text-3xl font-bold text-white text-center uppercase" style={{fontFamily: 'Gotham, Arial, sans-serif'}}>TABLE TOPICS GAMES</h1>
       </div>
       
-      <div className="border-t border-white mx-4 mb-4"></div>
+      <div className="border-t border-white mb-4"></div>
       
       <div className="overflow-x-auto pb-4 pt-4" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
         <style jsx>{`
@@ -46,7 +46,7 @@ export default function Home() {
         </div>
       </div>
       
-      <div className="border-t border-white mx-4 mt-4"></div>
+      <div className="border-t border-white mt-4"></div>
       
     </div>
   );
