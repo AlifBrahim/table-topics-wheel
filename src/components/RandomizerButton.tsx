@@ -16,7 +16,7 @@ const RandomizerButton: React.FC<RandomizerButtonProps> = ({ isRandomizing, onCl
       }`}
       aria-label={isRandomizing ? "Randomizing..." : "Pick random card"}
     >
-      <div className={`w-12 h-12 ${isRandomizing ? 'animate-pulse' : ''}`}>
+      <div className={`w-12 h-12 flex items-center justify-center ${isRandomizing ? 'animate-pulse' : ''}`}>
         <Image
           src="/Button_Icon_Green.svg"
           alt="Randomize"

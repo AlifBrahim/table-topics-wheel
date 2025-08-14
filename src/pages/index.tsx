@@ -218,15 +218,22 @@ export default function Home() {
       <div className="border-t border-white flex-shrink-0"></div>
       
       {/* Control Buttons */}
-      <div className="flex justify-center items-center gap-6 py-4 flex-shrink-0">
-        <RandomizerButton 
-          isRandomizing={isRandomizing}
-          onClick={handleRandomize}
-        />
-        <BriefcaseIcon 
-          isOpen={isBriefcaseOpen} 
-          onClick={handleBriefcaseClick}
-        />
+      <div className="relative py-12 flex-shrink-0 h-32">
+        {/* Green Button - perfectly centered */}
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <RandomizerButton 
+            isRandomizing={isRandomizing}
+            onClick={handleRandomize}
+          />
+        </div>
+        
+        {/* Briefcase - positioned next to green button */}
+        <div className="absolute left-1/2 top-1/2 transform translate-x-8 -translate-y-1/2">
+          <BriefcaseIcon 
+            isOpen={isBriefcaseOpen} 
+            onClick={handleBriefcaseClick}
+          />
+        </div>
       </div>
 
       {/* Question Modal */}
