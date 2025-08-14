@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import TableTopicsCard from "../components/TableTopicsCard";
 import BriefcaseIcon from "../components/BriefcaseIcon";
+import RandomizerButton from "../components/RandomizerButton";
 import QuestionModal from "../components/QuestionModal";
 import { useQuestions } from "../hooks/useQuestions";
 
@@ -14,6 +15,9 @@ export default function Home() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBriefcaseOpen, setIsBriefcaseOpen] = useState(false);
+  const [isRandomizing, setIsRandomizing] = useState(false);
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
+  const cardsContainerRef = useRef<HTMLDivElement>(null);
 
   const handleCardClick = (index: number) => {
     setFlippedCards(prev => {
@@ -35,6 +39,10 @@ export default function Home() {
       newFlippedCards[index] = false;
       return newFlippedCards;
     });
+    // Remove highlight if this card was selected
+    if (selectedCardIndex === index) {
+      setSelectedCardIndex(null);
+    }
   };
 
   const handleBriefcaseClick = () => {
@@ -84,6 +92,65 @@ export default function Home() {
     setDiscardedCards(new Array(importedQuestions.length).fill(false));
   };
 
+  const handleRandomize = async () => {
+    if (isRandomizing) return;
+    
+    // Get available (non-discarded) cards
+    const availableIndexes = discardedCards
+      .map((isDiscarded, index) => isDiscarded ? null : index)
+      .filter(index => index !== null) as number[];
+    
+    if (availableIndexes.length === 0) return; // No cards available
+    
+    setIsRandomizing(true);
+    setSelectedCardIndex(null);
+    
+    // Animate scrolling for 2.5 seconds
+    const animationDuration = 2500;
+    const startTime = Date.now();
+    
+    const animateScroll = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / animationDuration, 1);
+      
+      if (cardsContainerRef.current) {
+        // Create a bouncing scroll effect
+        const containerWidth = cardsContainerRef.current.scrollWidth - cardsContainerRef.current.clientWidth;
+        const scrollPosition = Math.sin(elapsed * 0.01) * containerWidth * 0.5 + containerWidth * 0.5;
+        cardsContainerRef.current.scrollLeft = scrollPosition;
+      }
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      } else {
+        // Animation complete - select random card
+        const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+        setSelectedCardIndex(randomIndex);
+        
+        // Scroll to selected card
+        if (cardsContainerRef.current) {
+          const cardElement = cardsContainerRef.current.children[0]?.children[randomIndex] as HTMLElement;
+          if (cardElement) {
+            cardElement.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+          }
+        }
+        
+        // Flip the selected card to show question
+        setTimeout(() => {
+          setFlippedCards(prev => {
+            const newFlippedCards = [...prev];
+            newFlippedCards[randomIndex] = false; // Show front (question)
+            return newFlippedCards;
+          });
+          
+          setIsRandomizing(false);
+        }, 800);
+      }
+    };
+    
+    animateScroll();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{background: 'radial-gradient(circle at center, #2B7A9B 0%, #1B5F7A 50%, #0D4A5F 100%)'}}>
@@ -111,20 +178,30 @@ export default function Home() {
       
       <div className="border-t border-white flex-shrink-0"></div>
       
-      <div className="flex-1 flex justify-center overflow-hidden" style={{paddingTop: '2rem'}}>
-        <div className="overflow-x-auto w-full" style={{scrollbarWidth: 'none', msOverflowStyle: 'none', height: '380px'}}>
+      <div className="flex-1 flex justify-center overflow-visible">
+        <div 
+          ref={cardsContainerRef}
+          className="w-full" 
+          style={{scrollbarWidth: 'none', msOverflowStyle: 'none', overflowX: 'auto', overflowY: 'visible'}}
+        >
           <style jsx>{`
             div::-webkit-scrollbar {
               display: none;
             }
           `}</style>
-          <div className="flex space-x-6 min-w-max pl-4 pr-4 py-4">
+          <div className="flex space-x-6 min-w-max pl-4 pr-4 pb-2 pt-8">
               {questions.map((question, index) => (
-                <div key={index} className="flex-shrink-0">
+                <div 
+                  key={index} 
+                  className={`flex-shrink-0 transition-all duration-500 ${
+                    selectedCardIndex === index && !discardedCards[index] ? 'transform scale-105' : ''
+                  }`}
+                >
                   <TableTopicsCard 
                     isFlipped={flippedCards[index]}
                     isDiscarded={discardedCards[index]}
-                    onClick={() => handleCardClick(index)}
+                    isSelected={selectedCardIndex === index}
+                    onClick={() => !isRandomizing && handleCardClick(index)}
                     onDiscard={() => handleDiscardCard(index)}
                     frontContent={
                       <p className="text-white text-base px-4">
@@ -140,8 +217,12 @@ export default function Home() {
       
       <div className="border-t border-white flex-shrink-0"></div>
       
-      {/* Briefcase Icon */}
-      <div className="flex justify-center py-4 flex-shrink-0">
+      {/* Control Buttons */}
+      <div className="flex justify-center items-center gap-6 py-4 flex-shrink-0">
+        <RandomizerButton 
+          isRandomizing={isRandomizing}
+          onClick={handleRandomize}
+        />
         <BriefcaseIcon 
           isOpen={isBriefcaseOpen} 
           onClick={handleBriefcaseClick}

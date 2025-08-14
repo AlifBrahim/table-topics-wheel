@@ -8,6 +8,7 @@ interface TableTopicsCardProps {
   onClick?: () => void;
   isDiscarded?: boolean;
   onDiscard?: () => void;
+  isSelected?: boolean;
 }
 
 const TableTopicsCard: React.FC<TableTopicsCardProps> = ({ 
@@ -15,7 +16,8 @@ const TableTopicsCard: React.FC<TableTopicsCardProps> = ({
   frontContent,
   onClick,
   isDiscarded = false,
-  onDiscard
+  onDiscard,
+  isSelected = false
 }) => {
   const handleCardClick = () => {
     if (!isDiscarded && onClick) {
@@ -33,7 +35,7 @@ const TableTopicsCard: React.FC<TableTopicsCardProps> = ({
   return (
     <div className={styles.cardContainer}>
       <div 
-        className={`${styles.card} ${isFlipped ? styles.flipped : ''} ${isDiscarded ? styles.discarded : ''}`}
+        className={`${styles.card} ${isFlipped ? styles.flipped : ''} ${isDiscarded ? styles.discarded : ''} ${isSelected && !isDiscarded ? styles.selected : ''}`}
         onClick={handleCardClick}
       >
         <div className={styles.cardInner}>
