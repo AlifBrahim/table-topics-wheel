@@ -194,7 +194,7 @@ export default function Home() {
                 <div 
                   key={index} 
                   className={`flex-shrink-0 transition-all duration-500 ${
-                    selectedCardIndex === index && !discardedCards[index] ? 'transform scale-105' : ''
+                    selectedCardIndex === index && !discardedCards[index] ? 'transform scale-110' : ''
                   }`}
                 >
                   <TableTopicsCard 
