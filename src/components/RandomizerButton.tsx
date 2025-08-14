@@ -4,22 +4,23 @@ import Image from 'next/image';
 interface RandomizerButtonProps {
   isRandomizing: boolean;
   onClick: () => void;
+  isRed?: boolean;
 }
 
-const RandomizerButton: React.FC<RandomizerButtonProps> = ({ isRandomizing, onClick }) => {
+const RandomizerButton: React.FC<RandomizerButtonProps> = ({ isRandomizing, onClick, isRed = false }) => {
   return (
     <button
       onClick={onClick}
-      disabled={isRandomizing}
-      className={`group relative p-4 hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 rounded-lg cursor-pointer ${
+      disabled={isRandomizing && !isRed}
+      className={`group relative p-4 hover:scale-110 transition-all duration-300 focus:outline-none cursor-pointer ${
         isRandomizing ? 'animate-spin cursor-not-allowed opacity-70' : ''
       }`}
-      aria-label={isRandomizing ? "Randomizing..." : "Pick random card"}
+      aria-label={isRandomizing ? (isRed ? "Randomizing... Click to stop" : "Randomizing...") : (isRed ? "Stop randomizing" : "Pick random card")}
     >
       <div className={`w-12 h-12 flex items-center justify-center ${isRandomizing ? 'animate-pulse' : ''}`}>
         <Image
-          src="/Button_Icon_Green.svg"
-          alt="Randomize"
+          src={isRed ? "/Button_Icon_Red.svg" : "/Button_Icon_Green.svg"}
+          alt={isRed ? "Stop" : "Randomize"}
           width={48}
           height={48}
           className="drop-shadow-lg"
@@ -32,7 +33,9 @@ const RandomizerButton: React.FC<RandomizerButtonProps> = ({ isRandomizing, onCl
           isRandomizing ? 'animate-ping' : ''
         }`}
         style={{
-          background: 'radial-gradient(circle, rgba(0, 255, 0, 0.4) 0%, transparent 70%)',
+          background: isRed 
+            ? 'radial-gradient(circle, rgba(255, 0, 0, 0.4) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(0, 255, 0, 0.4) 0%, transparent 70%)',
         }}
       />
       

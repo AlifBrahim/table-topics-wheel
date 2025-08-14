@@ -10,6 +10,8 @@ interface QuestionModalProps {
   defaultQuestions: string[];
   onQuestionCountChange: (count: number) => void;
   onImportQuestions: (questions: string[]) => void;
+  continuousShuffle: boolean;
+  onContinuousShuffleChange: (enabled: boolean) => void;
 }
 
 const QuestionModal: React.FC<QuestionModalProps> = ({
@@ -20,7 +22,9 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
   onReset,
   defaultQuestions,
   onQuestionCountChange,
-  onImportQuestions
+  onImportQuestions,
+  continuousShuffle,
+  onContinuousShuffleChange
 }) => {
   const [displayQuestionCount, setDisplayQuestionCount] = useState(questions.length);
 
@@ -80,7 +84,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-8 border-b border-gray-100">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <div>
@@ -131,9 +135,12 @@ const QuestionModal: React.FC<QuestionModalProps> = ({
               onQuestionCountChange={onQuestionCountChange}
               onImportQuestions={onImportQuestions}
               onFormQuestionsChange={(newQuestions) => setDisplayQuestionCount(newQuestions.length)}
+              continuousShuffle={continuousShuffle}
+              onContinuousShuffleChange={onContinuousShuffleChange}
             />
           </div>
         </div>
+
       </div>
 
       <style jsx>{`

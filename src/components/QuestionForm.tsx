@@ -10,6 +10,8 @@ interface QuestionFormProps {
   onQuestionCountChange: (count: number) => void;
   onImportQuestions: (questions: string[]) => void;
   onFormQuestionsChange: (questions: string[]) => void;
+  continuousShuffle: boolean;
+  onContinuousShuffleChange: (enabled: boolean) => void;
 }
 
 const QuestionForm: React.FC<QuestionFormProps> = ({
@@ -20,7 +22,9 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   defaultQuestions,
   onQuestionCountChange,
   onImportQuestions,
-  onFormQuestionsChange
+  onFormQuestionsChange,
+  continuousShuffle,
+  onContinuousShuffleChange
 }) => {
   const [formQuestions, setFormQuestions] = useState<string[]>(questions);
   const [errors, setErrors] = useState<boolean[]>(new Array(questions.length).fill(false));
@@ -186,9 +190,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <p className="text-sm text-gray-500">Edit your questions below. All fields are required.</p>
-      </div>
+
 
       {/* Import Section */}
       <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
@@ -305,16 +307,44 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
       
       <div className="sticky bottom-0 bg-white pt-6 border-t border-gray-100 mt-8 mx-0 px-8 pb-8 -mb-8">
         <div className="flex justify-between items-center">
-          <button
-            onClick={handleReset}
-            className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-            title="Reset to defaults"
-          >
-            <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-            </svg>
-            <span>Reset</span>
-          </button>
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={handleReset}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+              title="Reset to defaults"
+            >
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+              </svg>
+              <span>Reset</span>
+            </button>
+            
+            {/* Continuous Shuffle Toggle */}
+            <div className="flex items-center space-x-2 relative group">
+              <span className="text-sm text-gray-600">Continuous Shuffle</span>
+              <button
+                onClick={() => onContinuousShuffleChange(!continuousShuffle)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  continuousShuffle ? 'bg-blue-600' : 'bg-gray-300'
+                }`}
+                role="switch"
+                aria-checked={continuousShuffle}
+                aria-label="Toggle continuous shuffle mode"
+              >
+                <span
+                  className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                    continuousShuffle ? 'translate-x-5' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                Keep randomizing until you click the red stop button
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+          </div>
           
           <div className="flex space-x-3">
             <button

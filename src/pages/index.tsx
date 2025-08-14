@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import TableTopicsCard from "../components/TableTopicsCard";
 import BriefcaseIcon from "../components/BriefcaseIcon";
 import RandomizerButton from "../components/RandomizerButton";
@@ -17,7 +17,18 @@ export default function Home() {
   const [isBriefcaseOpen, setIsBriefcaseOpen] = useState(false);
   const [isRandomizing, setIsRandomizing] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
+  const [continuousShuffle, setContinuousShuffle] = useState(false);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
+  const continuousAnimationRef = useRef<number | null>(null);
+  const isAnimatingRef = useRef<boolean>(false);
+
+  // Load continuous shuffle preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('continuousShuffle');
+    if (saved !== null) {
+      setContinuousShuffle(JSON.parse(saved));
+    }
+  }, []);
 
   const handleCardClick = (index: number) => {
     setFlippedCards(prev => {
@@ -92,9 +103,12 @@ export default function Home() {
     setDiscardedCards(new Array(importedQuestions.length).fill(false));
   };
 
+  const handleContinuousShuffleChange = (enabled: boolean) => {
+    setContinuousShuffle(enabled);
+    localStorage.setItem('continuousShuffle', JSON.stringify(enabled));
+  };
+
   const handleRandomize = async () => {
-    if (isRandomizing) return;
-    
     // Get available (non-discarded) cards
     const availableIndexes = discardedCards
       .map((isDiscarded, index) => isDiscarded ? null : index)
@@ -102,28 +116,15 @@ export default function Home() {
     
     if (availableIndexes.length === 0) return; // No cards available
     
-    setIsRandomizing(true);
-    setSelectedCardIndex(null);
-    
-    // Animate scrolling for 2.5 seconds
-    const animationDuration = 2500;
-    const startTime = Date.now();
-    
-    const animateScroll = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / animationDuration, 1);
-      
-      if (cardsContainerRef.current) {
-        // Create a bouncing scroll effect
-        const containerWidth = cardsContainerRef.current.scrollWidth - cardsContainerRef.current.clientWidth;
-        const scrollPosition = Math.sin(elapsed * 0.01) * containerWidth * 0.5 + containerWidth * 0.5;
-        cardsContainerRef.current.scrollLeft = scrollPosition;
-      }
-      
-      if (progress < 1) {
-        requestAnimationFrame(animateScroll);
-      } else {
-        // Animation complete - select random card
+    if (continuousShuffle) {
+      if (isRandomizing) {
+        // Stop continuous shuffle and select current card
+        isAnimatingRef.current = false;
+        if (continuousAnimationRef.current) {
+          cancelAnimationFrame(continuousAnimationRef.current);
+        }
+        
+        // Select random card from available ones
         const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
         setSelectedCardIndex(randomIndex);
         
@@ -145,10 +146,83 @@ export default function Home() {
           
           setIsRandomizing(false);
         }, 800);
+      } else {
+        // Start continuous shuffle
+        setIsRandomizing(true);
+        setSelectedCardIndex(null);
+        isAnimatingRef.current = true;
+        
+        const startContinuousAnimation = () => {
+          if (cardsContainerRef.current && isAnimatingRef.current) {
+            // Create continuous scrolling effect
+            const containerWidth = cardsContainerRef.current.scrollWidth - cardsContainerRef.current.clientWidth;
+            const scrollPosition = Math.sin(Date.now() * 0.01) * containerWidth * 0.5 + containerWidth * 0.5;
+            cardsContainerRef.current.scrollLeft = scrollPosition;
+            
+            // Randomly highlight cards every few frames
+            if (Math.random() < 0.1) { // 10% chance to change highlight each frame
+              const currentHighlight = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+              setSelectedCardIndex(currentHighlight);
+            }
+            
+            continuousAnimationRef.current = requestAnimationFrame(startContinuousAnimation);
+          }
+        };
+        
+        startContinuousAnimation();
       }
-    };
-    
-    animateScroll();
+    } else {
+      // Single pick mode (original behavior)
+      if (isRandomizing) return;
+      
+      setIsRandomizing(true);
+      setSelectedCardIndex(null);
+      
+      // Animate scrolling for 2.5 seconds
+      const animationDuration = 2500;
+      const startTime = Date.now();
+      
+      const animateScroll = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / animationDuration, 1);
+        
+        if (cardsContainerRef.current) {
+          // Create a bouncing scroll effect
+          const containerWidth = cardsContainerRef.current.scrollWidth - cardsContainerRef.current.clientWidth;
+          const scrollPosition = Math.sin(elapsed * 0.01) * containerWidth * 0.5 + containerWidth * 0.5;
+          cardsContainerRef.current.scrollLeft = scrollPosition;
+        }
+        
+        if (progress < 1) {
+          requestAnimationFrame(animateScroll);
+        } else {
+          // Animation complete - select random card
+          const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+          setSelectedCardIndex(randomIndex);
+          
+          // Scroll to selected card
+          if (cardsContainerRef.current) {
+            const cardElement = cardsContainerRef.current.children[0]?.children[randomIndex] as HTMLElement;
+            if (cardElement) {
+              cardElement.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            }
+          }
+          
+          // Flip the selected card to show question
+          setTimeout(() => {
+            setFlippedCards(prev => {
+              const newFlippedCards = [...prev];
+              newFlippedCards[randomIndex] = false; // Show front (question)
+              return newFlippedCards;
+            });
+            
+            setIsRandomizing(false);
+          }, 800);
+        }
+      };
+      
+      animateScroll();
+    }
   };
 
   if (isLoading) {
@@ -224,6 +298,7 @@ export default function Home() {
           <RandomizerButton 
             isRandomizing={isRandomizing}
             onClick={handleRandomize}
+            isRed={continuousShuffle && isRandomizing}
           />
         </div>
         
@@ -246,6 +321,8 @@ export default function Home() {
         defaultQuestions={defaultQuestions}
         onQuestionCountChange={handleQuestionCountChange}
         onImportQuestions={handleImportQuestions}
+        continuousShuffle={continuousShuffle}
+        onContinuousShuffleChange={handleContinuousShuffleChange}
       />
     </div>
   );
