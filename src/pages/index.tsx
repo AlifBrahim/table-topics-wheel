@@ -9,6 +9,9 @@ export default function Home() {
   const [flippedCards, setFlippedCards] = useState<boolean[]>(
     new Array(questions.length).fill(false)
   );
+  const [discardedCards, setDiscardedCards] = useState<boolean[]>(
+    new Array(questions.length).fill(false)
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBriefcaseOpen, setIsBriefcaseOpen] = useState(false);
 
@@ -16,6 +19,20 @@ export default function Home() {
     setFlippedCards(prev => {
       const newFlippedCards = [...prev];
       newFlippedCards[index] = !newFlippedCards[index];
+      return newFlippedCards;
+    });
+  };
+
+  const handleDiscardCard = (index: number) => {
+    setDiscardedCards(prev => {
+      const newDiscardedCards = [...prev];
+      newDiscardedCards[index] = true;
+      return newDiscardedCards;
+    });
+    // Flip card back to front when discarded
+    setFlippedCards(prev => {
+      const newFlippedCards = [...prev];
+      newFlippedCards[index] = false;
       return newFlippedCards;
     });
   };
@@ -33,11 +50,13 @@ export default function Home() {
   const handleSaveQuestions = (newQuestions: string[]) => {
     saveQuestions(newQuestions);
     setFlippedCards(new Array(newQuestions.length).fill(false));
+    setDiscardedCards(new Array(newQuestions.length).fill(false));
   };
 
   const handleResetQuestions = () => {
     resetToDefaults();
     setFlippedCards(new Array(defaultQuestions.length).fill(false));
+    setDiscardedCards(new Array(defaultQuestions.length).fill(false));
   };
 
   const handleQuestionCountChange = (count: number) => {
@@ -49,17 +68,20 @@ export default function Home() {
       const newQuestions = [...questions, ...additionalQuestions];
       updateQuestionsCount(newQuestions);
       setFlippedCards(new Array(count).fill(false));
+      setDiscardedCards(new Array(count).fill(false));
     } else if (count < questions.length) {
       // Remove excess questions
       const newQuestions = questions.slice(0, count);
       updateQuestionsCount(newQuestions);
       setFlippedCards(new Array(count).fill(false));
+      setDiscardedCards(new Array(count).fill(false));
     }
   };
 
   const handleImportQuestions = (importedQuestions: string[]) => {
     updateQuestionsCount(importedQuestions);
     setFlippedCards(new Array(importedQuestions.length).fill(false));
+    setDiscardedCards(new Array(importedQuestions.length).fill(false));
   };
 
   if (isLoading) {
@@ -71,8 +93,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center" style={{background: 'radial-gradient(circle at center, #2B7A9B 0%, #1B5F7A 50%, #0D4A5F 100%)'}}>
-      <div className="container mx-auto px-4 mb-8 text-center">
+    <div className="h-screen flex flex-col" style={{background: 'radial-gradient(circle at center, #2B7A9B 0%, #1B5F7A 50%, #0D4A5F 100%)'}}>
+      <div className="container mx-auto px-4 py-4 text-center flex-shrink-0">
         <h1 className="text-3xl font-bold text-white uppercase inline-block relative" style={{fontFamily: 'Gotham, Arial, sans-serif'}}>
           TABLE TOPICS GAMES
           <div className="absolute -top-1 -right-4 group">
@@ -87,35 +109,39 @@ export default function Home() {
         </h1>
       </div>
       
-      <div className="border-t border-white mb-4"></div>
+      <div className="border-t border-white flex-shrink-0"></div>
       
-      <div className="overflow-x-auto pb-4 pt-4" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
-        <style jsx>{`
-          div::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-        <div className="flex space-x-6 min-w-max pl-4 pr-4 py-2">
-            {questions.map((question, index) => (
-              <div key={index} className="flex-shrink-0">
-                <TableTopicsCard 
-                  isFlipped={flippedCards[index]}
-                  onClick={() => handleCardClick(index)}
-                  frontContent={
-                    <p className="text-white text-base px-4">
-                      {question}
-                    </p>
-                  }
-                />
-              </div>
-            ))}
+      <div className="flex-1 flex justify-center overflow-hidden" style={{paddingTop: '2rem'}}>
+        <div className="overflow-x-auto w-full" style={{scrollbarWidth: 'none', msOverflowStyle: 'none', height: '380px'}}>
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          <div className="flex space-x-6 min-w-max pl-4 pr-4 py-4">
+              {questions.map((question, index) => (
+                <div key={index} className="flex-shrink-0">
+                  <TableTopicsCard 
+                    isFlipped={flippedCards[index]}
+                    isDiscarded={discardedCards[index]}
+                    onClick={() => handleCardClick(index)}
+                    onDiscard={() => handleDiscardCard(index)}
+                    frontContent={
+                      <p className="text-white text-base px-4">
+                        {question}
+                      </p>
+                    }
+                  />
+                </div>
+              ))}
+          </div>
         </div>
       </div>
       
-      <div className="border-t border-white mt-4"></div>
+      <div className="border-t border-white flex-shrink-0"></div>
       
       {/* Briefcase Icon */}
-      <div className="flex justify-center mt-8">
+      <div className="flex justify-center py-4 flex-shrink-0">
         <BriefcaseIcon 
           isOpen={isBriefcaseOpen} 
           onClick={handleBriefcaseClick}

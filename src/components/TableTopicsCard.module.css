@@ -287,3 +287,55 @@
   text-align: center;
 }
 
+.cardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-height: 340px;
+}
+
+.card.discarded {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card.discarded:hover {
+  transform: none;
+  filter: none;
+}
+
+.card.discarded:hover::before {
+  display: none;
+}
+
+.discardButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discardButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.discardButton:active {
+  transform: scale(0.95);
+}
+
+.buttonArea {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
