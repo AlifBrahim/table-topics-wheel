@@ -9,7 +9,7 @@ const BriefcaseIcon: React.FC<BriefcaseIconProps> = ({ isOpen, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="group relative p-4 hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-lg"
+      className="group relative p-4 hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-lg cursor-pointer"
       aria-label={isOpen ? "Close briefcase" : "Open briefcase"}
     >
       <svg

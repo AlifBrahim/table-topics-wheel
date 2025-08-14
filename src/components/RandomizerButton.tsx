@@ -11,7 +11,7 @@ const RandomizerButton: React.FC<RandomizerButtonProps> = ({ isRandomizing, onCl
     <button
       onClick={onClick}
       disabled={isRandomizing}
-      className={`group relative p-4 hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 rounded-lg ${
+      className={`group relative p-4 hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 rounded-lg cursor-pointer ${
         isRandomizing ? 'animate-spin cursor-not-allowed opacity-70' : ''
       }`}
       aria-label={isRandomizing ? "Randomizing..." : "Pick random card"}
