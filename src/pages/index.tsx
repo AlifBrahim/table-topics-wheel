@@ -5,7 +5,7 @@ import QuestionModal from "../components/QuestionModal";
 import { useQuestions } from "../hooks/useQuestions";
 
 export default function Home() {
-  const { questions, isLoading, saveQuestions, resetToDefaults, defaultQuestions } = useQuestions();
+  const { questions, isLoading, saveQuestions, updateQuestionsCount, resetToDefaults, defaultQuestions } = useQuestions();
   const [flippedCards, setFlippedCards] = useState<boolean[]>(
     new Array(questions.length).fill(false)
   );
@@ -38,6 +38,28 @@ export default function Home() {
   const handleResetQuestions = () => {
     resetToDefaults();
     setFlippedCards(new Array(defaultQuestions.length).fill(false));
+  };
+
+  const handleQuestionCountChange = (count: number) => {
+    if (count < 1 || count > 50) return;
+    
+    if (count > questions.length) {
+      // Add empty questions temporarily
+      const additionalQuestions = new Array(count - questions.length).fill('');
+      const newQuestions = [...questions, ...additionalQuestions];
+      updateQuestionsCount(newQuestions);
+      setFlippedCards(new Array(count).fill(false));
+    } else if (count < questions.length) {
+      // Remove excess questions
+      const newQuestions = questions.slice(0, count);
+      updateQuestionsCount(newQuestions);
+      setFlippedCards(new Array(count).fill(false));
+    }
+  };
+
+  const handleImportQuestions = (importedQuestions: string[]) => {
+    updateQuestionsCount(importedQuestions);
+    setFlippedCards(new Array(importedQuestions.length).fill(false));
   };
 
   if (isLoading) {
@@ -108,6 +130,8 @@ export default function Home() {
         onSave={handleSaveQuestions}
         onReset={handleResetQuestions}
         defaultQuestions={defaultQuestions}
+        onQuestionCountChange={handleQuestionCountChange}
+        onImportQuestions={handleImportQuestions}
       />
     </div>
   );

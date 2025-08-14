@@ -28,6 +28,15 @@ export const useQuestions = () => {
     saveQuestionsToStorage(newQuestions);
   };
 
+  const updateQuestionsCount = (newQuestions: string[]) => {
+    if (newQuestions.length < 1 || newQuestions.length > 50) {
+      throw new Error(`Expected between 1 and 50 questions, got ${newQuestions.length}`);
+    }
+    
+    // Just update state without saving to localStorage for count changes
+    setQuestions(newQuestions);
+  };
+
   const resetToDefaults = () => {
     setQuestions(tableTopicsQuestions);
     clearQuestionsFromStorage();
@@ -47,6 +56,7 @@ export const useQuestions = () => {
     questions,
     isLoading,
     saveQuestions,
+    updateQuestionsCount,
     resetToDefaults,
     updateQuestion,
     defaultQuestions: tableTopicsQuestions

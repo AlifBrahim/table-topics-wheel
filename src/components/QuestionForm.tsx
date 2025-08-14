@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { importQuestionsFromFile, ImportResult } from '../utils/fileImport';
 
 interface QuestionFormProps {
   questions: string[];
@@ -6,6 +7,9 @@ interface QuestionFormProps {
   onReset: () => void;
   onClose: () => void;
   defaultQuestions: string[];
+  onQuestionCountChange: (count: number) => void;
+  onImportQuestions: (questions: string[]) => void;
+  onFormQuestionsChange: (questions: string[]) => void;
 }
 
 const QuestionForm: React.FC<QuestionFormProps> = ({
@@ -13,18 +17,61 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
   onSave,
   onReset,
   onClose,
-  defaultQuestions
+  defaultQuestions,
+  onQuestionCountChange,
+  onImportQuestions,
+  onFormQuestionsChange
 }) => {
   const [formQuestions, setFormQuestions] = useState<string[]>(questions);
   const [errors, setErrors] = useState<boolean[]>(new Array(questions.length).fill(false));
   const [isSaving, setIsSaving] = useState(false);
-  const [questionCount, setQuestionCount] = useState(questions.length);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [questionIds, setQuestionIds] = useState<string[]>(() => 
+    questions.map(() => `question-${Math.random().toString(36).substr(2, 9)}`)
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  const [lastParentLength, setLastParentLength] = useState(questions.length);
 
   useEffect(() => {
-    setFormQuestions(questions);
-    setErrors(new Array(questions.length).fill(false));
-    setQuestionCount(questions.length);
-  }, [questions]);
+    // Only sync from parent on first load or when user changes count via header
+    if (!hasInitialized) {
+      setFormQuestions(questions);
+      setErrors(new Array(questions.length).fill(false));
+      setQuestionIds(questions.map(() => `question-${Math.random().toString(36).substr(2, 9)}`));
+      setHasInitialized(true);
+      setLastParentLength(questions.length);
+    } else if (questions.length !== lastParentLength && questions.length !== formQuestions.length) {
+      // User changed count via header - sync to new count
+      const newCount = questions.length;
+      if (newCount > formQuestions.length) {
+        // Add empty questions
+        const additionalQuestions = new Array(newCount - formQuestions.length).fill('');
+        const additionalIds = new Array(newCount - formQuestions.length).fill(0).map(() => 
+          `question-${Math.random().toString(36).substr(2, 9)}`
+        );
+        setFormQuestions([...formQuestions, ...additionalQuestions]);
+        setErrors([...errors, ...new Array(newCount - formQuestions.length).fill(false)]);
+        setQuestionIds([...questionIds, ...additionalIds]);
+      } else if (newCount < formQuestions.length) {
+        // Remove excess questions
+        setFormQuestions(formQuestions.slice(0, newCount));
+        setErrors(errors.slice(0, newCount));
+        setQuestionIds(questionIds.slice(0, newCount));
+      }
+      setLastParentLength(questions.length);
+    }
+  }, [questions, hasInitialized, formQuestions.length, questionIds, errors, lastParentLength]);
+
+  // Sync form questions count back to parent for header display
+  useEffect(() => {
+    if (hasInitialized) {
+      onFormQuestionsChange(formQuestions);
+    }
+  }, [formQuestions, hasInitialized, onFormQuestionsChange]);
 
   const handleQuestionChange = (index: number, value: string) => {
     const newQuestions = [...formQuestions];
@@ -63,44 +110,78 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const handleReset = () => {
     if (window.confirm('Are you sure you want to reset all questions to defaults? This action cannot be undone.')) {
+      const newIds = defaultQuestions.map(() => `question-${Math.random().toString(36).substr(2, 9)}`);
       setFormQuestions(defaultQuestions);
       setErrors(new Array(defaultQuestions.length).fill(false));
-      setQuestionCount(defaultQuestions.length);
+      setQuestionIds(newIds);
+      setHasInitialized(true); // Mark as re-initialized
+      setLastParentLength(defaultQuestions.length);
       onReset();
     }
   };
 
-  const handleQuestionCountChange = (newCount: number) => {
-    if (newCount < 1 || newCount > 50) return; // reasonable limits
-    
-    setQuestionCount(newCount);
-    
-    if (newCount > formQuestions.length) {
-      // Add empty questions
-      const additionalQuestions = new Array(newCount - formQuestions.length).fill('');
-      setFormQuestions([...formQuestions, ...additionalQuestions]);
-      setErrors([...errors, ...new Array(newCount - formQuestions.length).fill(false)]);
-    } else if (newCount < formQuestions.length) {
-      // Remove excess questions
-      setFormQuestions(formQuestions.slice(0, newCount));
-      setErrors(errors.slice(0, newCount));
-    }
-  };
 
   const addQuestion = () => {
     if (formQuestions.length >= 50) return; // reasonable limit
-    setFormQuestions([...formQuestions, '']);
+    const newQuestions = [...formQuestions, ''];
+    const newId = `question-${Math.random().toString(36).substr(2, 9)}`;
+    setFormQuestions(newQuestions);
     setErrors([...errors, false]);
-    setQuestionCount(formQuestions.length + 1);
+    setQuestionIds([...questionIds, newId]);
   };
 
   const removeQuestion = (index: number) => {
     if (formQuestions.length <= 1) return; // must have at least one question
+    
     const newQuestions = formQuestions.filter((_, i) => i !== index);
     const newErrors = errors.filter((_, i) => i !== index);
+    const newIds = questionIds.filter((_, i) => i !== index);
+    
     setFormQuestions(newQuestions);
     setErrors(newErrors);
-    setQuestionCount(newQuestions.length);
+    setQuestionIds(newIds);
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setImportError(null);
+
+    try {
+      const result: ImportResult = await importQuestionsFromFile(file);
+      
+      if (result.success) {
+        // Generate new IDs for imported questions
+        const newIds = result.questions.map(() => `question-${Math.random().toString(36).substr(2, 9)}`);
+        
+        // Update form questions first
+        setFormQuestions(result.questions);
+        setErrors(new Array(result.questions.length).fill(false));
+        setQuestionIds(newIds);
+        setImportError(null);
+        setLastParentLength(result.questions.length);
+        
+        // Update the parent state with the imported questions
+        onImportQuestions(result.questions);
+        
+        // Clear the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        setImportError(result.error || 'Failed to import questions');
+      }
+    } catch (error) {
+      setImportError('An unexpected error occurred while importing the file');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const triggerFileImport = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -109,35 +190,65 @@ const QuestionForm: React.FC<QuestionFormProps> = ({
         <p className="text-sm text-gray-500">Edit your questions below. All fields are required.</p>
       </div>
 
-      {/* Question Count Controls */}
-      <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+      {/* Import Section */}
+      <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
         <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-semibold text-gray-800">Number of Questions</label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="number"
-              min="1"
-              max="50"
-              value={questionCount}
-              onChange={(e) => handleQuestionCountChange(parseInt(e.target.value) || 1)}
-              className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
-            />
-            <button
-              onClick={addQuestion}
-              disabled={formQuestions.length >= 50}
-              className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-1 transition-colors"
-              title="Add question"
-            >
-              <span>+</span>
-            </button>
+          <div>
+            <h3 className="text-sm font-semibold text-blue-900">Import Questions</h3>
+            <p className="text-xs text-blue-700 mt-1">Upload a CSV or Excel file with one question per row</p>
           </div>
+          <button
+            onClick={triggerFileImport}
+            disabled={isImporting}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center space-x-2 transition-colors"
+          >
+            {isImporting ? (
+              <>
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Importing...</span>
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                </svg>
+                <span>Upload File</span>
+              </>
+            )}
+          </button>
         </div>
-        <p className="text-xs text-gray-500">You can have between 1 and 50 questions</p>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          onChange={handleFileImport}
+          className="hidden"
+        />
+        
+        {importError && (
+          <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg">
+            <p className="text-sm text-red-700 flex items-center space-x-2">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span>{importError}</span>
+            </p>
+          </div>
+        )}
+        
+        <p className="text-xs text-blue-600 mt-2">
+          Supported formats: CSV, Excel (.xlsx, .xls). Import will replace all current questions.
+        </p>
       </div>
+
       
       <div className="space-y-6">
         {formQuestions.map((question, index) => (
-          <div key={index} className="group">
+          <div key={questionIds[index]} className="group">
             <label className="block text-sm font-semibold text-gray-800 mb-2">
               Question {index + 1} <span className="text-red-500">*</span>
             </label>
